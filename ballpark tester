@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ballpark Estimator Tester</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .input-section {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .webhook-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 10px;
+        }
+
+        .webhook-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin: 25px 0 15px;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 8px;
+        }
+
+        .phase-card {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+
+        .phase-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .phase-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #333;
+        }
+
+        .phase-cost {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .phase-stats {
+            display: flex;
+            gap: 20px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .story-list {
+            margin-top: 10px;
+            padding-left: 15px;
+        }
+
+        .story-item {
+            padding: 10px;
+            background: white;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            border-left: 3px solid #e0e0e0;
+        }
+
+        .story-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .story-title {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .story-points {
+            background: #667eea;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .story-description {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .story-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 0.85rem;
+            color: #999;
+        }
+
+        .complexity {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .complexity-low {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .complexity-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .complexity-high {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #dc3545;
+        }
+
+        .raw-json {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .examples {
+            margin-top: 15px;
+        }
+
+        .example-btn {
+            background: #e8eaf6;
+            color: #667eea;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .example-btn:hover {
+            background: #c5cae9;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Ballpark Estimator Tester</h1>
+            <p>Test your n8n workflow webhook</p>
+        </div>
+
+        <div class="card">
+            <div class="input-section">
+                <label for="webhook-url">Webhook URL</label>
+                <input 
+                    type="text" 
+                    id="webhook-url" 
+                    class="webhook-input"
+                    placeholder="https://n8n.tsl.io/webhook/estimate"
+                    value="https://n8n.tsl.io/webhook/estimate"
+                />
+            </div>
+
+            <div class="input-section">
+                <label for="project-description">Project Description</label>
+                <textarea 
+                    id="project-description" 
+                    placeholder="Describe your project in detail..."
+                ></textarea>
+                
+                <div class="examples">
+                    <strong>Examples:</strong><br>
+                    <button class="example-btn" onclick="fillExample(0)">Mobile App</button>
+                    <button class="example-btn" onclick="fillExample(1)">E-commerce</button>
+                    <button class="example-btn" onclick="fillExample(2)">SaaS Platform</button>
+                    <button class="example-btn" onclick="fillExample(3)">Marketing Website</button>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-primary" id="submit-btn" onclick="submitEstimate()">
+                    Get Estimate
+                </button>
+                <button class="btn-secondary" onclick="clearForm()">
+                    Clear
+                </button>
+            </div>
+        </div>
+
+        <div id="loading" class="card loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Generating your estimate...</p>
+        </div>
+
+        <div id="error" class="card" style="display: none;">
+            <div class="error" id="error-message"></div>
+        </div>
+
+        <div id="results" class="card results">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('summary')">Summary</button>
+                <button class="tab" onclick="switchTab('phases')">Phases & Stories</button>
+                <button class="tab" onclick="switchTab('json')">Raw JSON</button>
+            </div>
+
+            <div id="tab-summary" class="tab-content active">
+                <div class="summary-grid" id="summary-metrics"></div>
+                <div id="complexity-breakdown"></div>
+                <div id="phase-summaries"></div>
+            </div>
+
+            <div id="tab-phases" class="tab-content">
+                <div id="phases-content"></div>
+            </div>
+
+            <div id="tab-json" class="tab-content">
+                <pre class="raw-json" id="raw-json"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const examples = [
+            "Build a mobile app for tracking daily water intake with reminders, progress charts, and social sharing features. Include user authentication, customizable goals, and integration with Apple Health and Google Fit.",
+            
+            "Create an e-commerce platform for handmade artisan goods with vendor onboarding, product catalog management, shopping cart, payment processing via Stripe, order tracking, and a review system.",
+            
+            "Develop a SaaS platform for team collaboration with real-time document editing, video conferencing, task management, file storage, and integrations with Slack and Google Workspace.",
+            
+            "Build a marketing website for a fintech startup with animated hero section, feature showcases, pricing calculator, blog with CMS, contact forms, and newsletter integration. Needs to be mobile-responsive and SEO-optimized."
+        ];
+
+        function fillExample(index) {
+            document.getElementById('project-description').value = examples[index];
+        }
+
+        function clearForm() {
+            document.getElementById('project-description').value = '';
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('error').style.display = 'none';
+        }
+
+        async function submitEstimate() {
+            const webhookUrl = document.getElementById('webhook-url').value.trim();
+            const projectDescription = document.getElementById('project-description').value.trim();
+
+            if (!webhookUrl) {
+                alert('Please enter your webhook URL');
+                return;
+            }
+
+            if (!projectDescription) {
+                alert('Please enter a project description');
+                return;
+            }
+
+            // Hide previous results and errors
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('submit-btn').disabled = true;
+
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        project: projectDescription
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayResults(data.data);
+                } else {
+                    throw new Error(data.error || 'Unknown error occurred');
+                }
+
+            } catch (error) {
+                document.getElementById('error-message').textContent = `Error: ${error.message}`;
+                document.getElementById('error').style.display = 'block';
+                console.error('Error:', error);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('submit-btn').disabled = false;
+            }
+        }
+
+        function displayResults(data) {
+            const est = data.estimation;
+
+            // Summary metrics
+            const metricsHTML = `
+                <div class="metric-card">
+                    <div class="metric-value">${est.total_cost_formatted}</div>
+                    <div class="metric-label">Total Cost</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${est.total_hours}</div>
+                    <div class="metric-label">Total Hours</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${est.total_points}</div>
+                    <div class="metric-label">Story Points</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${est.estimated_duration_weeks}</div>
+                    <div class="metric-label">Weeks</div>
+                </div>
+            `;
+            document.getElementById('summary-metrics').innerHTML = metricsHTML;
+
+            // Complexity breakdown
+            const complexityHTML = `
+                <div class="section-title">Complexity Breakdown</div>
+                <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                    <div class="metric-card" style="flex: 1;">
+                        <div class="metric-value">${est.complexity_breakdown.low}</div>
+                        <div class="metric-label">Low Complexity</div>
+                    </div>
+                    <div class="metric-card" style="flex: 1;">
+                        <div class="metric-value">${est.complexity_breakdown.medium}</div>
+                        <div class="metric-label">Medium Complexity</div>
+                    </div>
+                    <div class="metric-card" style="flex: 1;">
+                        <div class="metric-value">${est.complexity_breakdown.high}</div>
+                        <div class="metric-label">High Complexity</div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('complexity-breakdown').innerHTML = complexityHTML;
+
+            // Phase summaries
+            let phaseSummariesHTML = '<div class="section-title">Phase Breakdown</div>';
+            est.phase_summaries.forEach(phase => {
+                phaseSummariesHTML += `
+                    <div class="phase-card">
+                        <div class="phase-header">
+                            <div class="phase-name">${phase.phase_name}</div>
+                            <div class="phase-cost">$${phase.total_cost.toLocaleString()}</div>
+                        </div>
+                        <div class="phase-stats">
+                            <span>${phase.story_count} stories</span>
+                            <span>${phase.total_points} points</span>
+                            <span>${phase.total_hours} hours</span>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('phase-summaries').innerHTML = phaseSummariesHTML;
+
+            // Phases and stories
+            let phasesHTML = '';
+            data.phases.forEach(phase => {
+                const phaseStories = data.stories.filter(s => s.phase_id === phase.phase_id);
+                
+                phasesHTML += `
+                    <div class="section-title">${phase.phase_name}</div>
+                    <p style="color: #666; margin-bottom: 15px;">${phase.description}</p>
+                    <div class="story-list">
+                `;
+
+                phaseStories.forEach(story => {
+                    const points = data.points.find(p => p.story_id === story.story_id);
+                    const cost = data.costs.find(c => c.story_id === story.story_id);
+
+                    phasesHTML += `
+                        <div class="story-item">
+                            <div class="story-header">
+                                <div class="story-title">${story.title}</div>
+                                <div class="story-points">${points.points} pts</div>
+                            </div>
+                            <div class="story-description">${story.description}</div>
+                            <div class="story-meta">
+                                <span class="complexity complexity-${points.complexity}">${points.complexity.toUpperCase()}</span>
+                                <span>${cost.hours} hours</span>
+                                <span>$${cost.cost.toLocaleString()}</span>
+                                <span>${points.rationale}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                phasesHTML += '</div>';
+            });
+            document.getElementById('phases-content').innerHTML = phasesHTML;
+
+            // Raw JSON
+            document.getElementById('raw-json').textContent = JSON.stringify(data, null, 2);
+
+            // Show results
+            document.getElementById('results').classList.add('show');
+        }
+
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('project-description').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                submitEstimate();
+            }
+        });
+    </script>
+</body>
+</html>
